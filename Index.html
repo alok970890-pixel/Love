@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Love Greeting Card</title>
+  <style>
+    :root{--bg1:#ffdde1;--bg2:#fce4ec;--card:#fff}
+    body{margin:0;font-family:system-ui,Arial,Helvetica,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}
+    .container{width:100%;max-width:720px}
+    .card{background:var(--card);border-radius:18px;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,0.12);text-align:center}
+    .page{display:none;padding:22px}
+    .page.active{display:block}
+    h1{margin:6px 0 14px;font-size:28px;color:#d63b6b}
+    .hint{color:#444;margin-bottom:12px;font-weight:600}
+    .small{font-size:13px;color:#666}
+    .nav{display:flex;gap:10px;justify-content:center;margin-top:14px}
+    .btn{padding:8px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,#ff6f91,#ff9671);color:#fff;font-weight:700;cursor:pointer}
+    svg{width:100%;height:300px}
+    .axis text{font-size:12px;fill:#444}
+    .axis line{stroke:#ddd}
+    .line{stroke:#d63b6b;stroke-width:4;fill:none;stroke-linecap:round}
+    .emoji{font-size:28px}
+    .note{margin-top:10px;font-weight:700;color:#444}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="page active" id="p1">
+        <h1>Love 💕</h1>
+        <div class="hint">I have something for you</div>
+        <div class="small">(tap ▶︎ to see)</div>
+        <div class="nav"><button class="btn" onclick="show(2)">▶︎</button></div>
+      </div>
+
+      <div class="page" id="p2">
+        <h1>Love 💕</h1>
+        <div class="hint">Positive slope 💖</div>
+        <svg id="sv1" viewBox="0 0 600 360" aria-label="positive slope graph"></svg>
+        <div class="note">As your value in my eyes increases and my value in your eyes rises, our love grows together like a warm sunrise. 😊</div>
+        <div class="nav"><button class="btn" onclick="show(3);animateGraph('sv2',-0.6,0.9,'😢','#d63b6b')">Next</button></div>
+      </div>
+
+      <div class="page" id="p3">
+        <h1>Love 💕</h1>
+        <div class="hint">Negative slope 💔</div>
+        <svg id="sv2" viewBox="0 0 600 360" aria-label="negative slope graph"></svg>
+        <div class="note">If one of us drifts down, the love line slopes gently down, showing that we need to nurture it more. 😢</div>
+        <div class="nav"><button class="btn" onclick="show(4)">Next</button></div>
+      </div>
+
+      <div class="page" id="p4">
+        <h1>Love Note 💌</h1>
+        <div class="hint">Cutie, you know how to increase love 🌸</div>
+        <div class="note">Let's grow our love together, hand in hand, heart to heart. 💕</div>
+        <div class="nav"><button class="btn" onclick="show(1)">Back to Start 🔄</button></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function show(n){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('p'+n).classList.add('active');
+    if(n===2){
+      animateGraph('sv1',0.7,0.1,'😊','#2b8a6b');
+    }
+  }
+
+  function animateGraph(svgId,m,c,emojiChar,strokeColor){
+    const svg = document.getElementById(svgId);
+    svg.innerHTML='';
+    const W = 600, H = 360, L=60, R=20, T=20, B=60;
+    const innerW = W - L - R, innerH = H - T - B;
+    function el(tag, attrs={}, text){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]); if(text) e.textContent = text; return e}
+
+    const g = el('g',{transform:`translate(${L},${T})`});
+    svg.appendChild(g);
+
+    const axis = el('g',{class:'axis'});
+    axis.appendChild(el('line',{x1:0,y1:innerH,x2:innerW,y2:innerH,stroke:'#ccc'}));
+    axis.appendChild(el('line',{x1:0,y1:0,x2:0,y2:innerH,stroke:'#ccc'}));
+    axis.appendChild(el('text',{x:innerW/2,y:innerH+40,'text-anchor':'middle'},'your value in my eyes'));
+    axis.appendChild(el('text',{x:-40,y:innerH/2,transform:`rotate(-90 -40 ${innerH/2})`,'text-anchor':'middle'},'my value in your eyes'));
+    g.appendChild(axis);
+
+    function px(x){return x*innerW}
+    function py(y){return innerH - y*innerH}
+
+    let progress = 0;
+    const steps = 100;
+    const p0 = [px(0), py(Math.max(0, Math.min(1, m*0 + c)))];
+    const p1 = [px(1), py(Math.max(0, Math.min(1, m*1 + c)))];
+
+    const path = el('line',{x1:p0[0],y1:p0[1],x2:p0[0],y2:p0[1],stroke:strokeColor,'stroke-width':4});
+    g.appendChild(path);
+
+    const arrow = el('polygon',{points:'0,0 9,16 -9,16',fill:strokeColor});
+    g.appendChild(arrow);
+    const emoji = el('text',{x:p0[0],y:p0[1]-10,'class':'emoji'}, emojiChar);
+    g.appendChild(emoji);
+
+    function animate(){
+      progress++;
+      const t = progress/steps;
+      const x = p0[0] + (p1[0]-p0[0])*t;
+      const y = p0[1] + (p1[1]-p0[1])*t;
+      path.setAttribute('x2',x);
+      path.setAttribute('y2',y);
+      arrow.setAttribute('transform',`translate(${x},${y}) rotate(${Math.atan2(p1[1]-p0[1],p1[0]-p0[0])*180/Math.PI})`);
+      emoji.setAttribute('x',x+12);
+      emoji.setAttribute('y',y-10);
+      if(progress<steps){requestAnimationFrame(animate)}
+    }
+    animate();
+  }
+</script>
+</body>
+</html>
